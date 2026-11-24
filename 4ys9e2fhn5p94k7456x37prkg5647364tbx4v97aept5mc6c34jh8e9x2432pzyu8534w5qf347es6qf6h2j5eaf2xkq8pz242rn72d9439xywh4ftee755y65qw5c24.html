@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Les Sayenkru – Statut du serveur</title>
+<style>
+  /* ====== À MODIFIER : voir le bloc CONFIG dans le script en bas ====== */
+  :root { --vert:#4caf50; --rouge:#e53935; --orange:#ffa726; --gris:#9e9e9e; }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; min-height: 100vh; display: flex; align-items: center; justify-content: center;
+    font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; color: #fff;
+    background: #1b1b1b repeating-linear-gradient(45deg, #222 0 20px, #1b1b1b 20px 40px);
+    padding: 20px;
+  }
+  .carte {
+    width: 100%; max-width: 420px; background: #2b2b2b; border: 4px solid #000;
+    box-shadow: inset -4px -4px 0 #1a1a1a, inset 4px 4px 0 #444; padding: 28px 24px; text-align: center;
+  }
+  h1 { margin: 0 0 4px; font-size: 1.6rem; letter-spacing: 1px; }
+  .sous-titre { color: #aaa; margin: 0 0 24px; font-size: .95rem; }
+  .voyant {
+    width: 110px; height: 110px; margin: 0 auto 16px; border: 4px solid #000;
+    background: var(--gris); transition: background .3s;
+    box-shadow: inset -8px -8px 0 rgba(0,0,0,.25), inset 8px 8px 0 rgba(255,255,255,.2);
+  }
+  .voyant.up { background: var(--vert); animation: pulse 2s infinite; }
+  .voyant.down { background: var(--rouge); }
+  .voyant.late { background: var(--orange); }
+  @keyframes pulse { 50% { filter: brightness(1.25); } }
+  .etat { font-size: 1.5rem; font-weight: 800; margin: 0 0 6px; }
+  .maj { color: #888; font-size: .8rem; margin: 0 0 24px; }
+  .adresse {
+    background: #111; border: 2px solid #000; padding: 12px; margin-bottom: 10px;
+    font-family: ui-monospace, Menlo, Consolas, monospace; font-size: 1rem; word-break: break-all;
+  }
+  button {
+    width: 100%; padding: 12px; font-size: 1rem; font-weight: 700; color: #fff; cursor: pointer;
+    background: #3c8527; border: 3px solid #000; box-shadow: inset 0 -4px 0 #2a641c;
+  }
+  button:active { box-shadow: inset 0 4px 0 #2a641c; }
+  #badge { display: none; margin: 0 auto 16px; height: 24px; }
+  .pied { color: #666; font-size: .75rem; margin-top: 20px; }
+</style>
+</head>
+<body>
+<main class="carte">
+  <h1 id="nom">Les Sayenkru</h1>
+  <p class="sous-titre">Serveur Minecraft Bedrock</p>
+
+  <div class="voyant" id="voyant"></div>
+  <img id="badge" alt="Statut">
+  <p class="etat" id="etat">Vérification…</p>
+  <p class="maj" id="maj"></p>
+
+  <div class="adresse"><span id="adresse"></span></div>
+  <button id="copier">Copier l'adresse</button>
+
+  <p class="pied">Actualisation automatique toutes les minutes</p>
+</main>
+
+<script>
+/* ================= CONFIG – à remplir ================= */
+const CONFIG = {
+  nom: "Les Sayenkru",
+  // Adresse à donner aux joueurs (ton nom de domaine ou ton IP)
+  adresse: "mc.rtech-tresbell.fr",
+  port: 19132,
+  // Lien du badge healthchecks.io au format JSON (page "Badges" → JSON)
+  badgeJson: "https://healthchecks.io/badge/eed5a0e5-ef01-44a2-9a3c-db3472/76YP8gMK-2.json",
+};
+/* ====================================================== */
+
+const $ = id => document.getElementById(id);
+$("nom").textContent = CONFIG.nom;
+document.title = CONFIG.nom + " – Statut du serveur";
+$("adresse").textContent = CONFIG.adresse + ":" + CONFIG.port;
+
+const TEXTES = {
+  up:   "🟢 En ligne",
+  late: "🟠 En retard (peut-être en redémarrage)",
+  down: "🔴 Hors ligne",
+};
+
+function afficher(statut) {
+  $("voyant").className = "voyant " + (TEXTES[statut] ? statut : "");
+  $("etat").textContent = TEXTES[statut] || "❔ Statut inconnu";
+  $("maj").textContent = "Vérifié à " + new Date().toLocaleTimeString("fr-FR", {hour:"2-digit", minute:"2-digit"});
+}
+
+async function verifier() {
+  try {
+    const r = await fetch(CONFIG.badgeJson + "?t=" + Date.now(), { cache: "no-store" });
+    if (!r.ok) throw new Error(r.status);
+    const data = await r.json();
+    $("badge").style.display = "none";
+    $("voyant").style.display = "";
+    afficher(data.status);
+  } catch (e) {
+    // Plan B : si le JSON est bloqué par le navigateur, on affiche le badge image (SVG)
+    $("voyant").style.display = "none";
+    $("badge").src = CONFIG.badgeJson.replace(/\.json$/, ".svg") + "?t=" + Date.now();
+    $("badge").style.display = "block";
+    $("etat").textContent = "";
+    $("maj").textContent = "Vérifié à " + new Date().toLocaleTimeString("fr-FR", {hour:"2-digit", minute:"2-digit"});
+  }
+}
+
+$("copier").addEventListener("click", async () => {
+  try {
+    await navigator.clipboard.writeText(CONFIG.adresse);
+    $("copier").textContent = "Adresse copiée ✔";
+  } catch { $("copier").textContent = "Copie impossible, recopie-la à la main"; }
+  setTimeout(() => $("copier").textContent = "Copier l'adresse", 2000);
+});
+
+verifier();
+setInterval(verifier, 60000);
+</script>
+</body>
+</html>

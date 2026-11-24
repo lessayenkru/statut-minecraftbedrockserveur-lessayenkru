@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Les Sayenkru – Statut du serveur</title>
+<style>
+  :root { --vert:#4caf50; --rouge:#e53935; --orange:#ffa726; --gris:#9e9e9e; }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; min-height: 100vh; display: flex; align-items: flex-start; justify-content: center;
+    font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; color: #fff;
+    background: #1b1b1b repeating-linear-gradient(45deg, #222 0 20px, #1b1b1b 20px 40px);
+    padding: 40px 16px;
+  }
+  .carte {
+    width: 100%; max-width: 560px; background: #2b2b2b; border: 4px solid #000;
+    box-shadow: inset -4px -4px 0 #1a1a1a, inset 4px 4px 0 #444; padding: 28px 24px;
+  }
+  .haut { text-align: center; }
+  h1 { margin: 0 0 4px; font-size: 1.6rem; letter-spacing: 1px; }
+  .sous-titre { color: #aaa; margin: 0 0 24px; font-size: .95rem; }
+  .voyant {
+    width: 110px; height: 110px; margin: 0 auto 16px; border: 4px solid #000;
+    background: var(--gris); transition: background .3s;
+    box-shadow: inset -8px -8px 0 rgba(0,0,0,.25), inset 8px 8px 0 rgba(255,255,255,.2);
+  }
+  .voyant.up { background: var(--vert); animation: pulse 2s infinite; }
+  .voyant.down { background: var(--rouge); }
+  .voyant.late { background: var(--orange); }
+  @keyframes pulse { 50% { filter: brightness(1.25); } }
+  .etat { font-size: 1.5rem; font-weight: 800; margin: 0 0 6px; }
+  .maj { color: #888; font-size: .8rem; margin: 0 0 24px; }
+  #badge { display: none; margin: 0 auto 16px; height: 24px; }
+
+  button.principal {
+    width: 100%; padding: 14px; font-size: 1.05rem; font-weight: 700; color: #fff; cursor: pointer;
+    background: #3c8527; border: 3px solid #000; box-shadow: inset 0 -4px 0 #2a641c;
+  }
+  button.principal:active { box-shadow: inset 0 4px 0 #2a641c; }
+
+  button.secondaire {
+    width: 100%; margin-top: 10px; padding: 12px; font-size: 1rem; font-weight: 700; color: #fff; cursor: pointer;
+    background: #555; border: 3px solid #000; box-shadow: inset 0 -4px 0 #333;
+  }
+  #formMembre { display: none; margin-top: 12px; }
+  #formMembre.ouvert { display: block; }
+  #pseudo {
+    width: 100%; padding: 12px; font-size: 1rem; color: #fff; background: #111;
+    border: 3px solid #000; outline: none; margin-bottom: 10px;
+  }
+  #pseudo:focus { border-color: #3c8527; }
+  .msg { min-height: 1.3em; margin: 10px 0 0; font-weight: 600; }
+  .msg.erreur { color: #ff6b6b; }
+
+  #aide { display: none; margin-top: 24px; text-align: left; line-height: 1.55; }
+  #aide.ouvert { display: block; }
+  .bloc { background: #1f1f1f; border: 2px solid #000; padding: 16px 18px; margin-bottom: 14px; }
+  .bloc h2 { margin: 0 0 10px; font-size: 1.1rem; }
+  .bloc ol, .bloc ul { margin: 0; padding-left: 20px; }
+  .bloc li { margin-bottom: 6px; }
+  .bloc p { margin: 0 0 8px; }
+  code {
+    background: #111; border: 1px solid #000; padding: 1px 6px; font-family: ui-monospace, Menlo, Consolas, monospace;
+    color: #8bc34a;
+  }
+  .mention { color: #8ea1e1; font-weight: 600; }
+  .note { color: #bbb; font-size: .88rem; }
+  .important { border-color: #a33; }
+  .discord {
+    display: none; text-align: center; margin: 4px 0 0; padding: 12px; font-weight: 700;
+    background: #5865f2; color: #fff; text-decoration: none; border: 3px solid #000;
+  }
+  .pied { color: #666; font-size: .75rem; margin-top: 20px; text-align: center; }
+</style>
+</head>
+<body>
+<main class="carte">
+  <div class="haut">
+    <h1 id="nom">Les Sayenkru</h1>
+    <p class="sous-titre">Serveur Minecraft Bedrock</p>
+
+    <div class="voyant" id="voyant"></div>
+    <img id="badge" alt="Statut">
+    <p class="etat" id="etat">Vérification…</p>
+    <p class="maj" id="maj"></p>
+
+    <button class="principal" id="btnAide">Comment se connecter au serveur ?</button>
+    <button class="secondaire" id="btnMembre">Déjà membre ?</button>
+
+    <form id="formMembre">
+      <input id="pseudo" placeholder="Ton pseudo Xbox / Minecraft" autocomplete="username" autocapitalize="off" spellcheck="false" required>
+      <button class="principal" type="submit">Entrer</button>
+      <p class="msg" id="msgMembre"></p>
+    </form>
+  </div>
+
+  <section id="aide">
+
+    <div class="bloc">
+      <h2>1. Demander l'accès sur Discord</h2>
+      <p>Pour des raisons de sécurité, l'adresse du serveur n'est pas publique. Seuls ceux qui donnent leur pseudo peuvent rejoindre.</p>
+      <ol>
+        <li>Va sur le Discord <strong>Les Sayenkru</strong>, dans le salon <strong>#minecraft-server</strong>.</li>
+        <li><strong>Sur ordinateur :</strong> clique sur l'icône <strong>Fils</strong> en haut à droite, puis sur <strong>Créer</strong>.<br>
+            <strong>Sur téléphone :</strong> appuie sur <strong>Créer un fil</strong>.</li>
+        <li>Donne un <strong>titre</strong> au fil (obligatoire) et laisse <strong>Fil privé</strong> coché.</li>
+        <li>Écris : <span class="mention">@Trunks</span> ou <span class="mention">@Chef</span> suivi de ton <strong>pseudo Xbox / Minecraft</strong>.<br>
+            <span class="note">Sur téléphone, mentionne plutôt @Trunks : les mentions de rôle marchent mal. La mention doit s'afficher en couleur.</span></li>
+        <li>Envoie (touche Entrée, ou la flèche en bas à droite sur téléphone).</li>
+      </ol>
+      <p class="note" style="margin-top:8px">Tu recevras l'adresse du serveur en privé. Port : <code>19132</code> · Nom : <strong>Les Sayenkru</strong></p>
+      <a class="discord" id="lienDiscord" target="_blank" rel="noopener">Rejoindre le Discord</a>
+    </div>
+
+    <div class="bloc">
+      <h2>2. Se connecter sur PC, téléphone, Xbox…</h2>
+      <ol>
+        <li>Lance Minecraft → <strong>Jouer</strong> → onglet <strong>Serveurs</strong>.</li>
+        <li>Descends et choisis <strong>Ajouter un serveur</strong>.</li>
+        <li>Nom : <strong>Les Sayenkru</strong> · Adresse : celle reçue sur Discord · Port : <code>19132</code>.</li>
+        <li>Enregistre, puis <strong>Jouer</strong>.</li>
+      </ol>
+    </div>
+
+    <div class="bloc">
+      <h2>3. Se connecter sur Nintendo Switch</h2>
+      <p class="note">Il faut un compte Microsoft/Xbox connecté à Minecraft et un abonnement Nintendo Switch Online.</p>
+      <ol>
+        <li>Sur la Switch : <strong>Paramètres → Internet</strong> → sélectionne ta box → <strong>Modifier les paramètres</strong>.</li>
+        <li><strong>Paramétrage du DNS</strong> : <strong>Manuel</strong>.<br>
+            DNS primaire : <code>104.238.130.180</code><br>
+            DNS secondaire : <code>8.8.8.8</code><br>
+            Puis <strong>Sauvegarder</strong>.</li>
+        <li>Lance Minecraft → <strong>Jouer</strong> → onglet <strong>Serveurs</strong>.</li>
+        <li>Choisis un serveur dont la description indique <strong>« Join To Open Server List »</strong>. Regarde bien la description, pas le nom : ça change d'une connexion à l'autre. <span class="note">(Conseil : « Mineville Zeqa » fonctionne le mieux, même si la description n'apparaît pas toujours.)</span></li>
+        <li>Appuie sur <strong>Jouer</strong> : l'écran de <strong>BedrockConnect</strong> s'ouvre.</li>
+        <li>Choisis <strong>Connect to a Server</strong>, entre l'adresse reçue sur Discord, laisse le port <code>19132</code>, puis <strong>Envoyer</strong>.</li>
+      </ol>
+    </div>
+
+    <div class="bloc important">
+      <h2>Règles du serveur</h2>
+      <ul>
+        <li>En rejoignant le serveur, tu t'engages à respecter les règles.</li>
+        <li>Pour les nouveaux, un <strong>hôtel</strong> t'attend dans le village : lit, fourneau et établi à ta disposition.</li>
+        <li>Respecte les chambres et <strong>ne prends aucun objet</strong>.</li>
+        <li>Tu peux construire un coffre dans ta chambre, le temps de te construire une base.</li>
+        <li>Le non-respect des consignes (message dans le mauvais salon, pas de mention, propos inappropriés ou insultants) peut entraîner des sanctions.</li>
+      </ul>
+    </div>
+
+  </section>
+
+  <p class="pied">Statut actualisé automatiquement toutes les minutes</p>
+</main>
+
+<script>
+/* ================= CONFIG ================= */
+const CONFIG = {
+  nom: "Les Sayenkru",
+  // Lien du badge healthchecks.io au format JSON
+  badgeJson: "https://healthchecks.io/badge/eed5a0e5-ef01-44a2-9a3c-db3472/76YP8gMK-2.json",
+  // Lien d'invitation Discord (optionnel). Laisse "" pour masquer le bouton.
+  discord: "",
+};
+/* ========================================== */
+
+const $ = id => document.getElementById(id);
+$("nom").textContent = CONFIG.nom;
+document.title = CONFIG.nom + " – Statut du serveur";
+if (CONFIG.discord) { $("lienDiscord").href = CONFIG.discord; $("lienDiscord").style.display = "block"; }
+
+const TEXTES = {
+  up:   "🟢 En ligne",
+  late: "🟠 En retard (peut-être en redémarrage)",
+  down: "🔴 Hors ligne",
+};
+
+function heure() {
+  return "Vérifié à " + new Date().toLocaleTimeString("fr-FR", {hour:"2-digit", minute:"2-digit"});
+}
+
+async function verifier() {
+  try {
+    const r = await fetch(CONFIG.badgeJson + "?t=" + Date.now(), { cache: "no-store" });
+    if (!r.ok) throw new Error(r.status);
+    const data = await r.json();
+    $("badge").style.display = "none";
+    $("voyant").style.display = "";
+    $("voyant").className = "voyant " + (TEXTES[data.status] ? data.status : "");
+    $("etat").textContent = TEXTES[data.status] || "❔ Statut inconnu";
+  } catch (e) {
+    // Plan B : si le navigateur bloque le JSON, on affiche le badge image officiel
+    $("voyant").style.display = "none";
+    $("badge").src = CONFIG.badgeJson.replace(/\.json$/, ".svg") + "?t=" + Date.now();
+    $("badge").style.display = "block";
+    $("etat").textContent = "";
+  }
+  $("maj").textContent = heure();
+}
+
+$("btnAide").addEventListener("click", () => {
+  const ouvert = $("aide").classList.toggle("ouvert");
+  $("btnAide").textContent = ouvert ? "Masquer les explications" : "Comment se connecter au serveur ?";
+  if (ouvert) $("aide").scrollIntoView({ behavior: "smooth", block: "start" });
+});
+
+/* ===== Bouton "Déjà membre ?" ===== */
+// Page ouverte quand le pseudo est autorisé (dans le même dossier)
+const PAGE_MEMBRES = "membres.html";
+// Pseudos autorisés, enregistrés chiffrés (SHA-256 du pseudo en minuscules)
+// NasalMoss519820, jones5318, ChienLymphe9995, MembreCoureur79, GameRecord9080, OB14648
+const AUTORISES = [
+  "742a323cf5f832d830599f246219c9f3552778eb15237c6e394c19f62e7a1791",
+  "1ddc525b1e4d8b654852b63ea268871c12602803bb82542492dfbb49c0b5163a",
+  "65e6d9a53e126cfd88135260292122a6d296b33053dcfc1b31433ffdd817e635",
+  "4ca9fbb08ee9b459fabfabad2425b1a9c05adcfa7aceede937e2837de4ba6676",
+  "164bc1a91dc1f36714ce0797601b7d3891f593808c5ef8af42a04b0423ce6663",
+  "9b0afc148201830a87e36d8858292c474609f94baa613a61225c8f5769e12184",
+];
+
+async function empreinte(texte) {
+  const data = new TextEncoder().encode(texte.trim().toLowerCase());
+  const hash = await crypto.subtle.digest("SHA-256", data);
+  return [...new Uint8Array(hash)].map(b => b.toString(16).padStart(2, "0")).join("");
+}
+
+$("btnMembre").addEventListener("click", () => {
+  const ouvert = $("formMembre").classList.toggle("ouvert");
+  if (ouvert) $("pseudo").focus();
+});
+
+$("formMembre").addEventListener("submit", async (ev) => {
+  ev.preventDefault();
+  const pseudo = $("pseudo").value.replace(/["']/g, "").trim();
+  if (!pseudo) return;
+  const msg = $("msgMembre");
+  try {
+    if (AUTORISES.includes(await empreinte(pseudo))) {
+      msg.className = "msg";
+      msg.textContent = "✔ Bienvenue " + pseudo + " !";
+      setTimeout(() => { location.href = PAGE_MEMBRES; }, 600);
+    } else {
+      msg.className = "msg erreur";
+      msg.textContent = "✖ Ce pseudo n'est pas sur la liste des membres.";
+    }
+  } catch (e) {
+    msg.className = "msg erreur";
+    msg.textContent = "Erreur : ouvre la page via son adresse https.";
+  }
+});
+
+verifier();
+setInterval(verifier, 60000);
+</script>
+</body>
+</html>
